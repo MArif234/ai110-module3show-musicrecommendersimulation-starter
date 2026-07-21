@@ -77,6 +77,17 @@ def load_songs(csv_path: str) -> List[Dict]:
 
     return songs
 
+# --- Scoring weights (the Algorithm Recipe). Change these to run experiments. ---
+# Finalized recipe: genre is the strongest taste signal, so it is weighted
+# highest; mood and a perfect energy match are worth the same; acoustic is a
+# light tiebreaker. (Experiment tried: halve genre + double energy -- see the
+# README "Experiments" section for the result. Reverted to these values.)
+GENRE_WEIGHT = 2.0
+MOOD_WEIGHT = 1.0
+ENERGY_WEIGHT = 1.0
+ACOUSTIC_WEIGHT = 0.5
+
+
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     """
     Scores a single song against user preferences using the finalized
@@ -107,34 +118,35 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     target_energy = user_prefs.get("target_energy", user_prefs.get("energy"))
     likes_acoustic = user_prefs.get("likes_acoustic")
 
-    # Rule 1: genre match (+2.0)
+    # Rule 1: genre match
     if fav_genre is not None and song["genre"] == fav_genre:
-        score += 2.0
-        reasons.append(f"genre match ({song['genre']}) (+2.0)")
+        score += GENRE_WEIGHT
+        reasons.append(f"genre match ({song['genre']}) (+{GENRE_WEIGHT})")
 
-    # Rule 2: mood match (+1.0)
+    # Rule 2: mood match
     if fav_mood is not None and song["mood"] == fav_mood:
-        score += 1.0
-        reasons.append(f"mood match ({song['mood']}) (+1.0)")
+        score += MOOD_WEIGHT
+        reasons.append(f"mood match ({song['mood']}) (+{MOOD_WEIGHT})")
 
-    # Rule 3: energy similarity (up to +1.0) -- rewards CLOSENESS, not
-    # higher or lower. energy is already on a 0-1 scale, so 1 - distance
-    # stays between 0 and 1.
+    # Rule 3: energy similarity (up to ENERGY_WEIGHT) -- rewards CLOSENESS, not
+    # higher or lower. energy is on a 0-1 scale, so 1 - distance normally
+    # stays between 0 and 1. max(0.0, ...) floors it so an out-of-range
+    # target (e.g. 2.0) can never SUBTRACT points -- the worst case is 0.
     if target_energy is not None:
-        closeness = 1.0 - abs(target_energy - song["energy"])
-        points = round(closeness * 1.0, 2)
+        closeness = max(0.0, 1.0 - abs(target_energy - song["energy"]))
+        points = round(closeness * ENERGY_WEIGHT, 2)
         score += points
-        reasons.append(f"energy close to target (+{points})")
+        reasons.append(f"energy close to target (+{points:.2f})")
 
-    # Rule 4: acoustic agreement (+0.5 tiebreaker)
+    # Rule 4: acoustic agreement (tiebreaker)
     if likes_acoustic is not None:
         is_acoustic = song["acousticness"] >= 0.5
         if likes_acoustic == is_acoustic:
-            score += 0.5
+            score += ACOUSTIC_WEIGHT
             if likes_acoustic:
-                reasons.append("acoustic feel matches your preference (+0.5)")
+                reasons.append(f"acoustic feel matches your preference (+{ACOUSTIC_WEIGHT})")
             else:
-                reasons.append("non-acoustic feel matches your preference (+0.5)")
+                reasons.append(f"non-acoustic feel matches your preference (+{ACOUSTIC_WEIGHT})")
 
     return round(score, 2), reasons
 

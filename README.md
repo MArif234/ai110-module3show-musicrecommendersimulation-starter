@@ -137,47 +137,56 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Real terminal output from `python -m src.main`, using the starter **pop / happy** profile:
+`python -m src.main` runs the recommender against six user profiles (three
+realistic listeners plus three adversarial edge cases). Below is the real output
+for the first profile, **High-Energy Pop**; the full six-profile run — including
+the adversarial edge cases and a bug they uncovered — is documented in the
+[model card](model_card.md) under *Evaluation*.
 
 ```
 Loaded songs: 18
 
 ================================================================
-  Top 5 recommendations
-  Profile: genre=pop, mood=happy, energy=0.8
+  High-Energy Pop - Top 5 recommendations
+  Profile: favorite_genre=pop, favorite_mood=happy, target_energy=0.9, likes_acoustic=False
 ================================================================
 
   #1  Sunrise City - Neon Echo
-      Score: 3.98
+      Score: 4.42
       Reasons:
         - genre match (pop) (+2.0)
         - mood match (happy) (+1.0)
-        - energy close to target (+0.98)
+        - energy close to target (+0.92)
+        - non-acoustic feel matches your preference (+0.5)
 
   #2  Gym Hero - Max Pulse
-      Score: 2.87
+      Score: 3.47
       Reasons:
         - genre match (pop) (+2.0)
-        - energy close to target (+0.87)
+        - energy close to target (+0.97)
+        - non-acoustic feel matches your preference (+0.5)
 
   #3  Rooftop Lights - Indigo Parade
-      Score: 1.96
+      Score: 2.36
       Reasons:
         - mood match (happy) (+1.0)
-        - energy close to target (+0.96)
+        - energy close to target (+0.86)
+        - non-acoustic feel matches your preference (+0.5)
 
-  #4  Concrete Dreams - Flow State
-      Score: 0.98
+  #4  Storm Runner - Voltline
+      Score: 1.49
       Reasons:
-        - energy close to target (+0.98)
+        - energy close to target (+0.99)
+        - non-acoustic feel matches your preference (+0.5)
 
-  #5  Night Drive Loop - Neon Echo
-      Score: 0.95
+  #5  Neon Overdrive - Pulse Grid
+      Score: 1.45
       Reasons:
         - energy close to target (+0.95)
+        - non-acoustic feel matches your preference (+0.5)
 ```
 
-The result matches expectations: the pop + happy song (Sunrise City) wins outright. Note **Rooftop Lights** (an *indie pop*, happy song) ranks below Gym Hero only because `"indie pop"` does not exactly equal `"pop"` — a live example of the exact-match genre bias described above. Swapping in the "Lofi Studier" profile from the Taste Profiles section instead produces an all-lofi top 3 (Midnight Coding ~4.48, Library Rain ~4.45, Focus Flow ~3.50).
+The result matches expectations: the pop + happy song (Sunrise City) wins outright. Note **Rooftop Lights** (an *indie pop*, happy song) ranks below Gym Hero only because `"indie pop"` does not exactly equal `"pop"` — a live example of the exact-match genre bias described above.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
 
@@ -187,7 +196,9 @@ The result matches expectations: the pop + happy song (Sunrise City) wins outrig
 
 Planned experiments (fill in the observed results after running each):
 
-1. **Lower the genre weight (2.0 → 0.5).** Prediction: genre stops dominating, so cross-genre songs with the right mood/energy start appearing in the top 5 — more discovery, less "safe." *Result: TODO after running.*
+1. **Weight shift — halve genre (2.0 → 1.0) and double energy (×1.0 → ×2.0).** Prediction: genre stops dominating, so songs that match mood/energy but sit in a different genre climb the rankings.
+   **Result:** the *#1–2 picks stayed the same* for realistic profiles (the song matching genre + mood + energy still wins), but the scores below them compressed and cross-genre, energy-matching songs rose sharply. For **Chill Lofi**, the ambient track *Spacewalk Thoughts* jumped from 2.43 to 3.36, closing the gap to the #3 lofi song from 1.02 points to just 0.04. For the **Conflicting Signals** edge profile the top 5 actually *reordered* — high-energy songs (Gym Hero, Iron Verdict, Storm Runner) surged past the folk track that had ranked on mood alone.
+   **Verdict:** the change made results *different, not more accurate*. Because the top pick rarely changed, it doesn't help a user who trusts their genre choice; it mostly boosts discovery/variety in the mid-ranks by trading away genre loyalty. I reverted to the finalized weights (genre 2.0, energy ×1.0) after this experiment. *(Weights live in the `*_WEIGHT` constants in `src/recommender.py`, so this is a one-line change to re-run.)*
 2. **Add `valence` as a fifth rule** (closeness, weight ~0.5). Prediction: separates calm-happy songs from calm-sad ones that mood alone lumps together (e.g. Coffee Shop Stories vs. a melancholy track). *Result: TODO after running.*
 3. **Run the "Mixed Signals" profile** (rock + chill + low energy + acoustic). Prediction: no perfect match, so the ranking reveals how genre weight trades off against mood/energy/acoustic. *Result: TODO after running.*
 4. **Compare different listener types** (Lofi Studier vs. a hypothetical Hype Workout user). Prediction: the recommender returns clearly different top-5 lists, confirming it responds to the profile rather than always returning popular songs. *Result: TODO after running.*
