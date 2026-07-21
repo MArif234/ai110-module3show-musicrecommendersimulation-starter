@@ -137,20 +137,47 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Paste a sample of your recommender's output here as a text block so a reader can see what it produces.
-
-> NOTE: The block below is the **projected** output based on the Algorithm Recipe. Replace it with the **real** program output once the scoring logic in `src/recommender.py` is implemented and `python -m src.main` is run.
+Real terminal output from `python -m src.main`, using the starter **pop / happy** profile:
 
 ```
-User profile: genre=lofi, mood=chill, target_energy=0.4, likes_acoustic=True
+Loaded songs: 18
 
-Recommendations:
-  1. Midnight Coding    — LoRoom          (score ~4.48)  matches your favorite genre and chill mood; energy is spot on
-  2. Library Rain       — Paper Lanterns  (score ~4.45)  matches your favorite genre and chill mood; very acoustic
-  3. Focus Flow         — LoRoom          (score ~3.50)  matches your favorite genre; energy is spot on
-  4. Coffee Shop Stories — Slow Stereo    (score ~2.47)  low energy fits; acoustic feel matches
-  5. Spacewalk Thoughts — Orbit Bloom     (score ~2.38)  matches your chill mood; very acoustic
+================================================================
+  Top 5 recommendations
+  Profile: genre=pop, mood=happy, energy=0.8
+================================================================
+
+  #1  Sunrise City - Neon Echo
+      Score: 3.98
+      Reasons:
+        - genre match (pop) (+2.0)
+        - mood match (happy) (+1.0)
+        - energy close to target (+0.98)
+
+  #2  Gym Hero - Max Pulse
+      Score: 2.87
+      Reasons:
+        - genre match (pop) (+2.0)
+        - energy close to target (+0.87)
+
+  #3  Rooftop Lights - Indigo Parade
+      Score: 1.96
+      Reasons:
+        - mood match (happy) (+1.0)
+        - energy close to target (+0.96)
+
+  #4  Concrete Dreams - Flow State
+      Score: 0.98
+      Reasons:
+        - energy close to target (+0.98)
+
+  #5  Night Drive Loop - Neon Echo
+      Score: 0.95
+      Reasons:
+        - energy close to target (+0.95)
 ```
+
+The result matches expectations: the pop + happy song (Sunrise City) wins outright. Note **Rooftop Lights** (an *indie pop*, happy song) ranks below Gym Hero only because `"indie pop"` does not exactly equal `"pop"` — a live example of the exact-match genre bias described above. Swapping in the "Lofi Studier" profile from the Taste Profiles section instead produces an all-lofi top 3 (Midnight Coding ~4.48, Library Rain ~4.45, Focus Flow ~3.50).
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
 
