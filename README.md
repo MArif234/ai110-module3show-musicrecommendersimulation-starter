@@ -17,7 +17,7 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommenders (like Spotify or YouTube) usually blend two ideas: **collaborative filtering**, which guesses what you'll like from the behavior of similar users ("people who liked this also liked that"), and **content-based filtering**, which matches songs to you using the songs' own attributes, like genre, mood, and energy. My version is purely content-based, and that's a deliberate choice: I have song attributes but no data on how other users behave (no likes, skips, or play counts), so the collaborative half simply isn't possible here — I left it out on purpose rather than fake it. Instead, my recommender prioritizes **accuracy to the user's stated taste**. It scores every song against a simple `UserProfile` (favorite genre, favorite mood, target energy, and whether they like acoustic music) and adds up weighted points: genre match counts the most because it's the strongest, most reliable signal of taste, followed by mood, then how *close* a song's energy is to the target, then a small bonus for matching the acoustic preference. The highest-scoring songs are recommended. I weighted it this way so the picks stay predictable and honest to what the user asked for, and because a rule-based content system can *explain* every recommendation in plain language — something a black-box model can't easily do on a catalog this small.
 
 Some prompts to answer:
 
