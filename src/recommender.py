@@ -1,6 +1,6 @@
 import csv
 from typing import List, Dict, Tuple, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 @dataclass
 class Song:
@@ -39,12 +39,24 @@ class Recommender:
         self.songs = songs
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+        """Return the top k Songs for a user, best match first."""
+        # Reuse the shared scoring logic by converting the dataclasses to
+        # dicts (asdict turns UserProfile -> the keys score_song expects).
+        user_prefs = asdict(user)
+        scored = [
+            (song, score_song(user_prefs, asdict(song))[0])
+            for song in self.songs
+        ]
+        # Highest score first, ties broken by id so the order is stable.
+        ranked = sorted(scored, key=lambda item: (-item[1], item[0].id))
+        return [song for song, _score in ranked[:k]]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+        """Return a plain-language sentence explaining a song's score."""
+        score, reasons = score_song(asdict(user), asdict(song))
+        if reasons:
+            return f"Score {score:.2f}: " + "; ".join(reasons)
+        return f"Score {score:.2f}: no strong matches for this profile"
 
 def load_songs(csv_path: str) -> List[Dict]:
     """

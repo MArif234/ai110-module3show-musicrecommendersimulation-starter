@@ -230,5 +230,32 @@ Building this made it concrete that a "recommendation" is really just **turning 
 
 I also saw where bias and unfairness can creep in. The weights are a hidden value judgment — deciding genre matters more than mood systematically advantages some songs over others, and no user ever voted on that choice. A thin or skewed catalog makes it worse: styles that appear rarely can barely be recommended, and exact-string matching quietly excludes anyone whose taste isn't spelled the way the data is. At scale, these same mechanics are how recommenders create filter bubbles and can under-serve less mainstream artists or listeners.
 
+### Reflection on my engineering process
+
+**My biggest learning moment was realizing that the weights create bias.** Choosing
+genre = 2.0 and mood = 1.0 looked like a harmless number, but it quietly decided who got
+good recommendations and who didn't. My weight-shift experiment made it obvious: a "happy
+pop" fan still gets an intense workout song, and a lofi fan gets an all-lofi bubble. That's
+bias baked into a choice nobody voted on, and it changed how I think about every "small"
+design decision.
+
+**AI tools helped most by explaining concepts** — collaborative vs. content-based
+filtering, the "closeness" math for energy, and things like `sort` vs. `sorted`. But I
+had to double-check the AI, not just trust it. Its hand-computed sample scores were
+sometimes wrong (one song's score was off until I actually ran the code), so I learned to
+verify numbers by running the program instead of trusting the math on paper. I also had to
+keep watching for "doc drift" — after each code change I checked that the README and model
+card still matched what the program really printed.
+
+**What surprised me is that different users get completely different lists.** Feeding in
+opposite profiles produced totally different top-5 results, and that alone made it *feel*
+like the system understood each person — even though underneath it's just adding up a few
+points and sorting. A very simple algorithm can still feel personal.
+
+**If I extended this project, I would add collaborative filtering** — using real listening
+behavior like likes and skips, not just song attributes — and build a **much bigger,
+balanced dataset** so that genres aren't represented by only a single song. Together those
+two changes would attack the filter-bubble problem from both sides.
+
 
 
